@@ -14,11 +14,12 @@ templates = Jinja2Templates(directory="templates")
 
 app.include_router(router.router, prefix="/api")
 
-exchanges = pd.read_excel("exchange_list.xlsx").to_dict(orient="records")
-industries = pd.read_excel("industry_list.xlsx").to_dict(orient="records")
+exchanges = pd.read_csv("inputs\exchange_list.csv").to_dict(orient="records")
+industries = pd.read_csv("inputs\industry_list.csv").to_dict(orient="records")
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
+    
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "exchanges": exchanges,
