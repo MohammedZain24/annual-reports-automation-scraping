@@ -142,18 +142,45 @@ def download_company_data(driver, name, link, start_year):
     WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.CLASS_NAME, "company_description"))
     )
+
+    employees_raw = get_text_by_class(driver, "employees")
+    employees_clean = employees_raw.replace("Employees", "").strip()
+    employees_min = employees_max = ""
+
+    match = re.match(r"(\d[\d,]*)\s*-\s*(\d[\d,]*)", employees_clean)
+    if match:
+        employees_min = match.group(1).replace(",", "")
+        employees_max = match.group(2).replace(",", "")
+    elif employees_clean.replace(",", "").isdigit():
+        employees_min = employees_max = employees_clean.replace(",", "")
+
+    try:
+        website_element = driver.find_element(By.XPATH, "//a[contains(text(), 'Visit website')]")
+        website = website_element.get_attribute("href")
+    except:
+        website = ""
+
+    try:
+        report_eval_element = driver.find_element(By.XPATH, "//div[text()='REPORT RATINGS']/following-sibling::span[1]")
+        report_eval = report_eval_element.text.strip()
+    except:
+        report_eval = ""
+
     info = {
         "Company Name": name,
         "Ticker": get_text_by_class(driver, "ticker_name"),
         "Exchange": get_text_after_label(driver, "Exchange"),
         "Industry": get_text_after_label(driver, "Industry"),
         "Sector": get_text_after_label(driver, "Sector"),
-        "Employees": get_text_by_class(driver, "employees"),
+        "Employees Min": employees_min,
+        "Employees Max": employees_max,
         "Location": get_text_by_class(driver, "location"),
-        "Description": get_description(driver)
+        "Description": get_description(driver),
+        "Website": website,
+        "Report Evaluations": report_eval
     }
-    save_to_csv(info)
 
+    save_to_csv(info)
     pdf_links = driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf']")
     pdf_set = set()
     pdf_year_links = []
@@ -171,6 +198,7 @@ def download_company_data(driver, name, link, start_year):
     pdf_year_links.sort()
     for year, pdf_url in pdf_year_links:
         download_pdf(pdf_url, f"downloads/{name}")
+
 
 def download_all_companies(start_year=2010):
     driver = create_driver()
