@@ -237,14 +237,66 @@
                 </form>
             </div>
 
-            <!-- Download Info Only -->
+            <!-- Download Info Only (Filtered) -->
+            <!-- Download Info Only (Filtered) -->
             <div class="form-section">
                 <form method="post" action="/api/download/info-only">
-                    <h3>📋 Download Info Only</h3>
+                    <h3>📋 Download Info Only (Filtered)</h3>
+
+                    <label>Filter Type:</label>
+                    <select name="filter_type" id="filterTypeInfoOnly">
+                        <option value="exchange">Exchange</option>
+                        <option value="industry">Industry</option>
+                    </select>
+
+                    <label>Filter Value:</label>
+                    <!-- Input for industry -->
+                    <input name="filter_value" id="filterValueInputInfoOnly" type="text" placeholder="e.g. Biotechnology" required>
+
+                    <!-- Dropdown for exchange -->
+                    <select name="filter_value" id="filterValueSelectInfoOnly" style="display: none;">
+                        <option value="">-- Select Exchange --</option>
+                        <option value="AIM">AIM</option>
+                        <option value="AMEX">AMEX</option>
+                        <option value="ASX">ASX</option>
+                        <option value="LSE">LSE</option>
+                        <option value="NASDAQ">NASDAQ</option>
+                        <option value="NYSE">NYSE</option>
+                        <option value="OTC">OTC</option>
+                        <option value="TSX">TSX</option>
+                        <option value="TSX-V">TSX-V</option>
+                    </select>
+
+                    <label>Start Year:</label>
+                    <input name="start_year" type="number" value="2015" required>
+
                     <button type="submit">Download</button>
                 </form>
             </div>
-        </div>
+
+            <script>
+                // Toggle input/select based on filter type (info-only)
+                document.getElementById("filterTypeInfoOnly").addEventListener("change", function () {
+                    var input = document.getElementById("filterValueInputInfoOnly");
+                    var select = document.getElementById("filterValueSelectInfoOnly");
+                    if (this.value === "exchange") {
+                        input.style.display = "none";
+                        select.style.display = "inline-block";
+                        input.required = false;
+                        select.required = true;
+                    } else {
+                        input.style.display = "inline-block";
+                        select.style.display = "none";
+                        input.required = true;
+                        select.required = false;
+                    }
+                });
+
+                // Trigger change on page load to set correct initial state
+                document.getElementById("filterTypeInfoOnly").dispatchEvent(new Event("change"));
+            </script>
+
+
 
         <!-- API Endpoints List -->
         <div class="endpoint-box">

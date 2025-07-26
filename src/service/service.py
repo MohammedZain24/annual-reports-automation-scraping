@@ -271,9 +271,42 @@ def download_companies_by_filter(start_year=2010, exchange=None, industry=None):
 
 
 
-def download_company_info_excel():
+def scrape_company_info_by_filter(start_year=2010, exchange=None, industry=None):
+    exchange_codes = extract_exchange_codes()
+    industry_codes = extract_industry_codes()
+
+    exch_id = None
+    ind_id = None
+
+    if exchange:
+        exchange_clean = exchange.strip().upper()
+        for key in exchange_codes:
+            key_short = key.split('\n')[0].strip().upper()
+            if exchange_clean == key_short:
+                exch_id = exchange_codes[key]
+                break
+        if not exch_id:
+            raise ValueError(f"Invalid exchange: {exchange}")
+
+    if industry:
+        industry_clean = industry.strip().upper()
+        for key in industry_codes:
+            if industry_clean == key.strip().upper():
+                ind_id = industry_codes[key]
+                break
+        if not ind_id:
+            raise ValueError(f"Invalid industry: {industry}")
+
+    base_url = "https://www.annualreports.com/Companies"
+    params = []
+    if exch_id:
+        params.append(f"exch={exch_id}")
+    if ind_id:
+        params.append(f"ind={ind_id}")
+    if params:
+        base_url += "?" + "&".join(params)
+
     driver = create_driver()
-    base_url = "https://www.annualreports.com/Companies?exch=9"
     company_links = scrape_company_links(driver, base_url)
 
     if os.path.exists(EXCEL_FILE):
@@ -282,22 +315,54 @@ def download_company_info_excel():
     for name, link in company_links:
         driver.get(link)
         time.sleep(2)
-        WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "company_description"))
-        )
+
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "company_description"))
+            )
+        except:
+            continue
+
+        try:
+            website = driver.find_element(By.XPATH, "//a[contains(text(), 'Visit website')]").get_attribute("href")
+        except:
+            website = ""
+
+        try:
+            report_eval = driver.find_element(By.XPATH, "//div[text()='REPORT RATINGS']/following-sibling::span[1]").text.strip()
+        except:
+            report_eval = ""
+
+        employees_raw = get_text_by_class(driver, "employees")
+        employees_clean = employees_raw.replace("Employees", "").strip()
+        employees_min = employees_max = ""
+        match = re.match(r"(\d[\d,]*)\s*-\s*(\d[\d,]*)", employees_clean)
+        if match:
+            employees_min = match.group(1).replace(",", "")
+            employees_max = match.group(2).replace(",", "")
+        elif employees_clean.replace(",", "").isdigit():
+            employees_min = employees_max = employees_clean.replace(",", "")
+
         info = {
             "Company Name": name,
             "Ticker": get_text_by_class(driver, "ticker_name"),
             "Exchange": get_text_after_label(driver, "Exchange"),
             "Industry": get_text_after_label(driver, "Industry"),
             "Sector": get_text_after_label(driver, "Sector"),
-            "Employees": get_text_by_class(driver, "employees"),
+            "Employees Min": employees_min,
+            "Employees Max": employees_max,
             "Location": get_text_by_class(driver, "location"),
-            "Description": get_description(driver)
+            "Description": get_description(driver),
+            "Website": website,
+            "Report Evaluations": report_eval,
         }
+
         save_to_csv(info)
+
     driver.quit()
     return len(company_links), os.path.abspath(EXCEL_FILE)
+
+
 
 
 def find_company_by_name(query: str):

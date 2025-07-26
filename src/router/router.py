@@ -10,7 +10,7 @@ from src.service.service import (
     download_all_companies,
     download_companies_by_filter,
     download_company_by_name,
-    download_company_info_excel
+    scrape_company_info_by_filter
 )
 
 router = APIRouter()
@@ -84,15 +84,34 @@ def download_one(
 
 
 @router.post("/download/info-only")
-def download_info_only():
+def download_info_only(
+    filter_type: str = Form(...),
+    filter_value: str = Form(...),
+    start_year: int = Form(...)
+):
     try:
-        count, file_path = download_company_info_excel()
+        if filter_type == "exchange":
+            count, file_path = scrape_company_info_by_filter(
+                start_year=start_year,
+                exchange=filter_value
+            )
+        elif filter_type == "industry":
+            count, file_path = scrape_company_info_by_filter(
+                start_year=start_year,
+                industry=filter_value
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Invalid filter_type. Use 'exchange' or 'industry'.")
+
         if os.path.exists(file_path):
             return FileResponse(
                 path=file_path,
                 filename=os.path.basename(file_path),
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
         raise HTTPException(status_code=500, detail="File not found after generation.")
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
