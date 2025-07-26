@@ -1,19 +1,19 @@
-﻿id,name,image
+﻿id,name,image,link
 8,"AIM
-Alternative Investment Market",https://www.annualreports.com/HostedData/ExchangeLogos/AIM.png
+Alternative Investment Market",https://www.annualreports.com/HostedData/ExchangeLogos/AIM.png,https://www.annualreports.com/Companies?exch=8
 3,"AMEX
-American Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/AMEX.png
+American Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/AMEX.png,https://www.annualreports.com/Companies?exch=3
 7,"ASX
-Australian Securities Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/asx.jpg
+Australian Securities Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/asx.jpg,https://www.annualreports.com/Companies?exch=7
 9,"LSE
-London Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/lse.jpg
+London Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/lse.jpg,https://www.annualreports.com/Companies?exch=9
 2,"NASDAQ
-Nasdaq Technology Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/NASDAQ.png
+Nasdaq Technology Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/NASDAQ.png,https://www.annualreports.com/Companies?exch=2
 1,"NYSE
-New York Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/NYSE.png
+New York Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/NYSE.png,https://www.annualreports.com/Companies?exch=1
 4,"OTC
-Over The Counter",https://www.annualreports.com/HostedData/ExchangeLogos/OTC.png
+Over The Counter",https://www.annualreports.com/HostedData/ExchangeLogos/OTC.png,https://www.annualreports.com/Companies?exch=4
 5,"TSX
-Toronto Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/tsx.jpg
+Toronto Stock Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/tsx.jpg,https://www.annualreports.com/Companies?exch=5
 6,"TSX-V
-TSX Venture Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/TSX-V.png
+TSX Venture Exchange",https://www.annualreports.com/HostedData/ExchangeLogos/TSX-V.png,https://www.annualreports.com/Companies?exch=6

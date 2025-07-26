@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 os.makedirs("downloads", exist_ok=True)
 os.makedirs("outputs", exist_ok=True)
 
-EXCEL_FILE = os.path.join("outputs", "company_info.xlsx")
+EXCEL_FILE = os.path.join("outputs", "company_info.csv")
 
 def create_driver():
     options = webdriver.ChromeOptions()
@@ -21,14 +21,21 @@ def create_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
-def save_to_excel(data):
-    df = pd.DataFrame([data])
-    if not os.path.exists(EXCEL_FILE):
-        df.to_excel(EXCEL_FILE, index=False)
-    else:
-        with pd.ExcelWriter(EXCEL_FILE, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer:
-            df.to_excel(writer, startrow=pd.read_excel(EXCEL_FILE).shape[0]+1, index=False, header=False)
 
+def save_to_csv(data, file_path=EXCEL_FILE):
+    df = pd.DataFrame([data])
+
+    # Check if file exists
+    file_exists = os.path.isfile(file_path)
+
+    if not file_exists:
+        df.to_csv(file_path, index=False)
+        print(f"CSV file created: {file_path}")
+    else:
+        df.to_csv(file_path, mode='a', header=False, index=False)
+        print(f"Appended data to existing CSV: {file_path}")
+
+        
 def download_pdf(url, folder):
     try:
         os.makedirs(folder, exist_ok=True)
@@ -145,7 +152,7 @@ def download_company_data(driver, name, link, start_year):
         "Location": get_text_by_class(driver, "location"),
         "Description": get_description(driver)
     }
-    save_to_excel(info)
+    save_to_csv(info)
 
     pdf_links = driver.find_elements(By.CSS_SELECTOR, "a[href$='.pdf']")
     pdf_set = set()
@@ -260,7 +267,7 @@ def download_company_info_excel():
             "Location": get_text_by_class(driver, "location"),
             "Description": get_description(driver)
         }
-        save_to_excel(info)
+        save_to_csv(info)
     driver.quit()
     return len(company_links), os.path.abspath(EXCEL_FILE)
 

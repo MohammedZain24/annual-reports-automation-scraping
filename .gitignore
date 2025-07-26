@@ -1,8 +1,5 @@
 # Other folders
-/keys
-/static
-/logs
-/AI_models
+/outputs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -11,8 +8,7 @@ __pycache__/
 
 # C extensions
 *.so
-exchange_list.xlsx
-industry_list.xlsx
+
 # Distribution / packaging
 .Python
 build/
