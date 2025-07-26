@@ -189,28 +189,25 @@ def download_companies_by_filter(start_year=2010, exchange=None, industry=None):
     if exchange:
         exch_id = None
         exchange_clean = exchange.strip().upper()
-        # ابحث بدون حساسية حالة الأحرف
         for key in exchange_codes:
-            if exchange_clean == key.upper():
+            key_short = key.split('\n')[0].strip().upper()
+            if exchange_clean == key_short:
                 exch_id = exchange_codes[key]
                 break
 
         if not exch_id:
             driver.quit()
             raise ValueError(
-                f"Invalid exchange: {exchange}. Available options: {list(exchange_codes.keys())}"
+                f"Invalid exchange: {exchange}. Available options: {[k.split(chr(10))[0] for k in exchange_codes.keys()]}"
             )
 
         params.append(f"exch={exch_id}")
 
     if industry:
         ind_id = None
-        industry_clean = industry.strip()
-        print(f"Received industry: '{industry_clean}'")  # طباعة قيمة الصناعة القادمة
-
-        # ابحث بدون حساسية حالة الأحرف
+        industry_clean = industry.strip().upper()
         for key in industry_codes:
-            if industry_clean.upper() == key.upper():
+            if industry_clean == key.strip().upper():
                 ind_id = industry_codes[key]
                 break
 
