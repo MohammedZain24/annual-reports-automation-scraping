@@ -4,12 +4,11 @@
     <title>📊 Annual Reports Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-        /* Navbar styles */
         .navbar {
             background: #333;
             padding: 10px 20px;
             display: flex;
-            justify-content: flex-end; /* right align */
+            justify-content: flex-end;
             align-items: center;
             position: sticky;
             top: 0;
@@ -49,7 +48,6 @@
             max-width: 100%; height: 100px; object-fit: contain; margin-bottom: 10px;
         }
 
-        /* API Section */
         .endpoint-box {
             background: #f0f8ff;
             padding: 30px 25px;
@@ -126,7 +124,6 @@
         button:hover {
             background-color: #218838;
         }
-        /* API endpoints list styling */
         .endpoint-box code {
             background: #d5f0d5;
             padding: 6px 12px;
@@ -143,7 +140,6 @@
         .endpoint-box code:hover {
             background-color: #b3dfb3;
         }
-        /* Search input */
         input[type="text"] {
             width: 320px;
             padding: 10px;
@@ -157,24 +153,19 @@
 </head>
 <body>
 
-    <!-- Navigation bar on top right -->
     <div class="navbar">
         <a href="/industries" title="View Industries only">🏭 Industries</a>
     </div>
 
     <div class="container">
-
-        <!-- Site logo -->
         <div style="text-align: center; margin-top: 30px; margin-bottom: 20px;">
             <img src="/static/logo.webp" alt="Logo" style="max-width: 200px; height: auto;">
         </div>
 
         <h1>📁 Annual Reports Scraper</h1>
 
-        <!-- Search input for exchanges -->
         <input type="text" id="searchInput" placeholder="Search exchanges...">
 
-        <!-- Exchanges Section -->
         <h2>🏛️ Exchanges</h2>
         <div class="grid" id="exchangeGrid">
             {% for exch in exchanges %}
@@ -187,7 +178,6 @@
             {% endfor %}
         </div>
 
-        <!-- API Forms Section -->
         <div class="endpoint-box">
             <h2>🧪 Try API Endpoints (Interactive Forms)</h2>
 
@@ -201,17 +191,34 @@
                 </form>
             </div>
 
-            <!-- Download by Filter (Exchange or Industry) -->
+            <!-- Download by Filter -->
             <div class="form-section">
                 <form method="post" action="/api/download/filter">
                     <h3>🎯 Download by Filter (Exchange or Industry)</h3>
                     <label>Filter Type:</label>
-                    <select name="filter_type">
+                    <select name="filter_type" id="filterType">
                         <option value="exchange">Exchange</option>
                         <option value="industry">Industry</option>
                     </select>
+
                     <label>Filter Value:</label>
-                    <input name="filter_value" type="text" placeholder="e.g. NASDAQ or Biotechnology" required>
+                    <!-- Input field for industry -->
+                    <input name="filter_value" id="filterValueInput" type="text" placeholder="e.g. Biotechnology" required>
+
+                    <!-- Dropdown for exchange -->
+                    <select name="filter_value" id="filterValueSelect" style="display: none;">
+                        <option value="">-- Select Exchange --</option>
+                        <option value="AIM">AIM</option>
+                        <option value="AMEX">AMEX</option>
+                        <option value="ASX">ASX</option>
+                        <option value="LSE">LSE</option>
+                        <option value="NASDAQ">NASDAQ</option>
+                        <option value="NYSE">NYSE</option>
+                        <option value="OTC">OTC</option>
+                        <option value="TSX">TSX</option>
+                        <option value="TSX-V">TSX-V</option>
+                    </select>
+
                     <label>Start Year:</label>
                     <input name="start_year" type="number" value="2015" required>
                     <button type="submit">Download</button>
@@ -251,8 +258,8 @@
         </div>
     </div>
 
-    <!-- JS for exchange search -->
     <script>
+        // Exchange search
         const searchInput = document.getElementById("searchInput");
         const exchangeCards = document.querySelectorAll("#exchangeGrid > .card");
 
@@ -263,6 +270,28 @@
                 card.style.display = name.includes(term) ? "block" : "none";
             });
         });
+
+        // Toggle input/select for filter_value
+        const filterType = document.getElementById("filterType");
+        const filterValueInput = document.getElementById("filterValueInput");
+        const filterValueSelect = document.getElementById("filterValueSelect");
+
+        function toggleFilterField() {
+            if (filterType.value === "exchange") {
+                filterValueInput.style.display = "none";
+                filterValueInput.removeAttribute("required");
+                filterValueSelect.style.display = "block";
+                filterValueSelect.setAttribute("required", "required");
+            } else {
+                filterValueSelect.style.display = "none";
+                filterValueSelect.removeAttribute("required");
+                filterValueInput.style.display = "block";
+                filterValueInput.setAttribute("required", "required");
+            }
+        }
+
+        filterType.addEventListener("change", toggleFilterField);
+        window.addEventListener("DOMContentLoaded", toggleFilterField);
     </script>
 
 </body>

@@ -11,7 +11,8 @@ __pycache__/
 
 # C extensions
 *.so
-
+exchange_list.xlsx
+industry_list.xlsx
 # Distribution / packaging
 .Python
 build/

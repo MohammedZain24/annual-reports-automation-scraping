@@ -1,4 +1,3 @@
-#src/service/service.py
 import os
 import time
 import re
@@ -9,8 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+os.makedirs("downloads", exist_ok=True)
+os.makedirs("outputs", exist_ok=True)
 
-EXCEL_FILE = "company_info.xlsx"
+EXCEL_FILE = os.path.join("outputs", "company_info.xlsx")
 
 def create_driver():
     options = webdriver.ChromeOptions()
@@ -103,9 +104,9 @@ def extract_exchange_codes():
     exchanges = {}
     boxes = driver.find_elements(By.CSS_SELECTOR, "a[href^='/Companies?exch=']")
     for box in boxes:
-        name = box.text.strip().split("\n")[0]
+        name = box.text.strip()
         match = re.search(r"exch=(\d+)", box.get_attribute("href"))
-        if match and name:
+        if match and name:  
             exchanges[name.upper()] = match.group(1)
 
     driver.quit()
@@ -168,10 +169,14 @@ def download_all_companies(start_year=2010):
     driver = create_driver()
     base_url = "https://www.annualreports.com/Companies?exch=9"  
     company_links = scrape_company_links(driver, base_url)
+
+    if os.path.exists(EXCEL_FILE):
+        os.remove(EXCEL_FILE)
+
     for name, link in company_links:
         download_company_data(driver, name, link, start_year)
     driver.quit()
-    return len(company_links)
+    return len(company_links), os.path.abspath(EXCEL_FILE)
 
 def download_companies_by_filter(start_year=2010, exchange=None, industry=None):
     exchange_codes = extract_exchange_codes()
@@ -182,17 +187,39 @@ def download_companies_by_filter(start_year=2010, exchange=None, industry=None):
     params = []
 
     if exchange:
-        exch_id = exchange_codes.get(exchange.upper())
+        exch_id = None
+        exchange_clean = exchange.strip().upper()
+        # ابحث بدون حساسية حالة الأحرف
+        for key in exchange_codes:
+            if exchange_clean == key.upper():
+                exch_id = exchange_codes[key]
+                break
+
         if not exch_id:
             driver.quit()
-            raise ValueError(f"Invalid exchange: {exchange}")
+            raise ValueError(
+                f"Invalid exchange: {exchange}. Available options: {list(exchange_codes.keys())}"
+            )
+
         params.append(f"exch={exch_id}")
 
     if industry:
-        ind_id = industry_codes.get(industry)
+        ind_id = None
+        industry_clean = industry.strip()
+        print(f"Received industry: '{industry_clean}'")  # طباعة قيمة الصناعة القادمة
+
+        # ابحث بدون حساسية حالة الأحرف
+        for key in industry_codes:
+            if industry_clean.upper() == key.upper():
+                ind_id = industry_codes[key]
+                break
+
         if not ind_id:
             driver.quit()
-            raise ValueError(f"Invalid industry: {industry}")
+            raise ValueError(
+                f"Invalid industry: {industry}. Available options: {list(industry_codes.keys())}"
+            )
+
         params.append(f"ind={ind_id}")
 
     if params:
@@ -200,10 +227,17 @@ def download_companies_by_filter(start_year=2010, exchange=None, industry=None):
 
     company_links = scrape_company_links(driver, base_url)
 
+    if os.path.exists(EXCEL_FILE):
+        os.remove(EXCEL_FILE)
+
     for name, link in company_links:
         download_company_data(driver, name, link, start_year)
+
     driver.quit()
-    return len(company_links)
+    return len(company_links), os.path.abspath(EXCEL_FILE)
+
+
+
 
 def download_company_info_excel():
     driver = create_driver()
@@ -231,24 +265,54 @@ def download_company_info_excel():
         }
         save_to_excel(info)
     driver.quit()
-    return os.path.abspath(EXCEL_FILE)
+    return len(company_links), os.path.abspath(EXCEL_FILE)
+
+
+def find_company_by_name(query: str):
+    df = pd.read_csv("inputs/all_companies.csv")
+
+    df.columns = [col.strip().lower() for col in df.columns]
+    query_clean = query.strip().lower()
+
+    name_col = "company name"
+    url_col = "url"
+    exchange_col = "exchange"
+
+    def normalize(name):
+        return name.strip().lower()
+
+    exact_matches = df[df[name_col].apply(lambda x: normalize(x) == query_clean)]
+    if not exact_matches.empty:
+        row = exact_matches.iloc[0]
+        return {
+            "name": row[name_col],
+            "link": row[url_col],
+            "exchange": row.get(exchange_col, "")
+        }
+
+    partial_matches = df[df[name_col].apply(lambda x: query_clean in normalize(x))]
+    if not partial_matches.empty:
+        row = partial_matches.iloc[0]
+        return {
+            "name": row[name_col],
+            "link": row[url_col],
+            "exchange": row.get(exchange_col, "")
+        }
+
+    return None
+
 
 def download_company_by_name(company_name, start_year=2010):
     driver = create_driver()
-    base_url = "https://www.annualreports.com/Companies?exch=9"
-    company_links = scrape_company_links(driver, base_url)
 
-    matched_company = None
-    for name, link in company_links:
-        if name.strip().lower() == company_name.strip().lower():
-            matched_company = (name, link)
-            break
-
-    if not matched_company:
+    company_info = find_company_by_name(company_name)
+    if company_info is None:
         driver.quit()
         return None
 
-    name, link = matched_company
+    name = company_info["name"]
+    link = company_info["link"]
+
     download_company_data(driver, name, link, start_year)
     driver.quit()
 
@@ -257,6 +321,6 @@ def download_company_by_name(company_name, start_year=2010):
         pdf_files = [f for f in os.listdir(folder) if f.endswith(".pdf")]
         if pdf_files:
             pdf_path = os.path.join(folder, pdf_files[0])
-            return pdf_path
+            return name, os.path.abspath(pdf_path)
 
-    return None
+    return name, None

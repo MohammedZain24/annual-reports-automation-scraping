@@ -1,28 +1,21 @@
-# src/router.router.py
+# src/router/router.py
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, Form
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 import os
-from fastapi import Form
-import traceback 
-from src.schema.schema import (
-    DownloadAllRequest,
-    DownloadByFilterRequest,
-    DownloadSpecificCompanyRequest
-)
+import traceback
+
 from src.service.service import (
     download_all_companies,
     download_companies_by_filter,
     download_company_by_name,
     download_company_info_excel
 )
-import pandas as pd
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-@router.post("/download/all")
 
 @router.post("/download/all")
 def download_all(start_year: int = Form(...)):
@@ -37,7 +30,6 @@ def download_all(start_year: int = Form(...)):
         raise HTTPException(status_code=500, detail="File not found after generation.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 @router.post("/download/filter")
@@ -62,8 +54,8 @@ def download_filter(
             )
         raise HTTPException(status_code=500, detail="File not found after generation.")
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 @router.post("/download/company")
@@ -72,23 +64,29 @@ def download_one(
     start_year: int = Form(...)
 ):
     try:
-        file_path = download_company_by_name(company_name, start_year)
+        result = download_company_by_name(company_name, start_year)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Company not found.")
+        
+        name, file_path = result
         if not file_path or not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Company not found or file missing.")
+            raise HTTPException(status_code=404, detail="File not found.")
+        
         return FileResponse(
             path=file_path,
             filename=os.path.basename(file_path),
-            media_type="application/pdf"  
+            media_type="application/pdf"
         )
     except Exception as e:
-        traceback.print_exc()  
+        import traceback
+        print(traceback.format_exc())  
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.post("/download/info-only")
 def download_info_only():
     try:
-        file_path = download_company_info_excel()
+        count, file_path = download_company_info_excel()
         if os.path.exists(file_path):
             return FileResponse(
                 path=file_path,
@@ -98,25 +96,3 @@ def download_info_only():
         raise HTTPException(status_code=500, detail="File not found after generation.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
-
-# @router.get("/options/exchanges")
-# def get_exchange_options():
-#     try:
-#         result = extract_exchange_options()
-#         return {"status": "ok", "data": result}
-#     except Exception as e:
-#         print(" ERROR:", e)
-#         traceback.print_exc()
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# @router.get("/options/industries")
-# def get_industry_options():
-#     try:
-#         industries = extract_industry_options()
-#         return JSONResponse(content={"industries": industries})
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))

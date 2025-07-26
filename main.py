@@ -14,8 +14,9 @@ templates = Jinja2Templates(directory="templates")
 
 app.include_router(router.router, prefix="/api")
 
-exchanges = pd.read_csv("inputs\exchange_list.csv").to_dict(orient="records")
-industries = pd.read_csv("inputs\industry_list.csv").to_dict(orient="records")
+exchanges = pd.read_csv("inputs/exchange_list.csv").to_dict(orient="records")
+industries = pd.read_csv("inputs/industry_list.csv").to_dict(orient="records")
+
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
@@ -32,3 +33,4 @@ def industries_page(request: Request):
         "request": request,
         "industries": industries
     })
+

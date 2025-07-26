@@ -218,7 +218,6 @@
             {% endfor %}
         </div>
 
-        <!-- API Forms Section -->
         <div class="endpoint-box">
             <h2>🧪 Try API Endpoints (Interactive Forms)</h2>
 
@@ -235,12 +234,28 @@
                 <form method="post" action="/api/download/filter">
                     <h3>🎯 Download by Filter</h3>
                     <label>Filter Type:</label>
-                    <select name="filter_type">
+                    <select name="filter_type" id="filterType">
                         <option value="exchange">Exchange</option>
                         <option value="industry">Industry</option>
                     </select>
+
                     <label>Filter Value:</label>
-                    <input name="filter_value" type="text" placeholder="e.g. NASDAQ or Biotechnology" required>
+
+                    <input name="filter_value" id="filterValueInput" type="text" placeholder="e.g. Biotechnology" required>
+
+                    <select name="filter_value" id="filterValueSelect" style="display: none;">
+                        <option value="">-- Select Exchange --</option>
+                        <option value="AIM">AIM</option>
+                        <option value="AMEX">AMEX</option>
+                        <option value="ASX">ASX</option>
+                        <option value="LSE">LSE</option>
+                        <option value="NASDAQ">NASDAQ</option>
+                        <option value="NYSE">NYSE</option>
+                        <option value="OTC">OTC</option>
+                        <option value="TSX">TSX</option>
+                        <option value="TSX-V">TSX-V</option>
+                    </select>
+
                     <label>Start Year:</label>
                     <input name="start_year" type="number" value="2015" required>
                     <button type="submit">Download</button>
@@ -266,7 +281,6 @@
             </div>
         </div>
 
-        <!-- API Endpoints List -->
         <div class="endpoint-box">
             <h2>🔗 API Endpoints</h2>
             <code>POST /api/download/all</code>
@@ -304,7 +318,33 @@
 
         searchInput.addEventListener("input", filterCards);
         sortSelect.addEventListener("change", sortCards);
-        window.onload = () => sortCards();
+
+        const filterType = document.getElementById("filterType");
+        const filterValueInput = document.getElementById("filterValueInput");
+        const filterValueSelect = document.getElementById("filterValueSelect");
+
+        function toggleFilterField() {
+            if (filterType.value === "exchange") {
+                filterValueInput.style.display = "none";
+                filterValueInput.removeAttribute("required");
+
+                filterValueSelect.style.display = "block";
+                filterValueSelect.setAttribute("required", "required");
+            } else {
+                filterValueSelect.style.display = "none";
+                filterValueSelect.removeAttribute("required");
+
+                filterValueInput.style.display = "block";
+                filterValueInput.setAttribute("required", "required");
+            }
+        }
+
+        filterType.addEventListener("change", toggleFilterField);
+
+        window.onload = () => {
+            sortCards();
+            toggleFilterField();
+        };
     </script>
 </body>
 </html>
